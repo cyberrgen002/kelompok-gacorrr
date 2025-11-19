@@ -4,7 +4,475 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Knapsack Solver GA - Kelompok Gacorrr</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .team-info {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        /* Problem Section */
+        .problem-section, .parameters-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .problem-section h2, .parameters-section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .setup-container {
+            display: grid;
+            gap: 30px;
+        }
+
+        .capacity-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .capacity-input label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .capacity-input input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 120px;
+        }
+
+        .items-container h3 {
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        .items-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .item-row input {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .remove-item {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-item:hover {
+            background: #c53030;
+        }
+
+        .add-item-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-item-btn:hover {
+            background: #38a169;
+        }
+
+        /* Parameters Section */
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .param-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        .param-group input {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .solve-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .solve-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Results Section */
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .solution-container, .evolution-info {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .solution-display {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+            font-family: monospace;
+            font-size: 16px;
+            min-height: 150px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .generation-info {
+            text-align: center;
+            color: #718096;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.9em;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        /* Visualization */
+        .visualization-section, .details-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .visualization-section h2, .details-section h2 {
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .chart-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        #convergenceChart {
+            width: 100%;
+            height: 300px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .solution-details {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        /* Explanation Section */
+        .explanation-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .step-card {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: transform 0.2s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .step-card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .step-card p {
+            color: #718096;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .example {
+            background: #edf2f7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #4a5568;
+            border-left: 3px solid #667eea;
+        }
+
+        /* Team Section */
+        .team-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .team-members {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .member-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .member-card h4 {
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        .member-card p {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .member-card span {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        /* Solution Items */
+        .solution-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .solution-item.included {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .solution-item.excluded {
+            border-left-color: #e53e3e;
+            background: #fff5f5;
+            opacity: 0.7;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-stats {
+            font-size: 0.9em;
+            color: #718096;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .param-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -76,7 +544,7 @@
                     <div class="progress-bar">
                         <div id="progressFill" class="progress-fill"></div>
                     </div>
-                    <div id="generationInfo" class="generation-info"></div>
+                    <div id="generationInfo" class="generation-info">Generasi 0/100</div>
                 </div>
                 
                 <div class="stats-grid">
@@ -90,7 +558,7 @@
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">Berat Total</span>
-                        <span id="totalWeight" class="stat-value">0</span>
+                        <span id="totalWeight" class="stat-value">0 kg</span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">Waktu</span>
@@ -164,29 +632,491 @@
             <h2>👥 Kelompok Gacorrr</h2>
             <div class="team-members">
                 <div class="member-card">
-                    <h4>Ketua</h4>
-                    <p>Nama Anggota 1</p>
-                    <span>NIM: 123456789</span>
+                    <h4>Anggota 1</h4>
+                    <p>Wihdatu Nuuro Ahmadi</p>
+                    <span>NIM: 251420042</span>
                 </div>
                 <div class="member-card">
-                    <h4>Anggota</h4>
-                    <p>Nama Anggota 2</p>
-                    <span>NIM: 123456790</span>
+                    <h4>Anggota 2</h4>
+                    <p>Chelsi Mekha Puri</p>
+                    <span>NIM: 241420043</span>
                 </div>
                 <div class="member-card">
-                    <h4>Anggota</h4>
-                    <p>Nama Anggota 3</p>
-                    <span>NIM: 123456791</span>
+                    <h4>Anggota 3</h4>
+                    <p>Dimas Fikriansyah</p>
+                    <span>NIM: 251420034</span>
                 </div>
                 <div class="member-card">
-                    <h4>Anggota</h4>
-                    <p>Nama Anggota 4</p>
-                    <span>NIM: 123456792</span>
+                    <h4>Anggota 4</h4>
+                    <p>Fitri Ramadhini</p>
+                    <span>NIM: 251420019</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota 5</h4>
+                    <p>Saskiyah Zahra Kirana</p>
+                    <span>NIM: 251420041</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota 6</h4>
+                    <p>Muhammad Akbar</p>
+                    <span>NIM: 251420039</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota 7</h4>
+                    <p>Parel</p>
+                    <span>NIM: 251420040</span>
                 </div>
             </div>
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // KELOMPOK GACORRR - ALGORITMA GENETIKA
+        // Tugas Mata Kuliah - Knapsack Problem Solver
+
+        class KnapsackGeneticSolver {
+            constructor() {
+                this.population = [];
+                this.bestSolution = null;
+                this.bestFitness = 0;
+                this.generation = 0;
+                this.fitnessHistory = [];
+                this.valueHistory = [];
+                this.startTime = 0;
+                this.items = [];
+            }
+
+            // Inisialisasi populasi acak
+            initializePopulation(populationSize, numItems) {
+                this.population = [];
+                for (let i = 0; i < populationSize; i++) {
+                    const chromosome = Array(numItems).fill(0).map(() => Math.random() > 0.5 ? 1 : 0);
+                    this.population.push(chromosome);
+                }
+            }
+
+            // Fungsi fitness - menghitung total nilai dengan penalty untuk overload
+            calculateFitness(chromosome, items, capacity) {
+                let totalValue = 0;
+                let totalWeight = 0;
+                
+                // Hitung total nilai dan berat
+                chromosome.forEach((gene, index) => {
+                    if (gene === 1) {
+                        totalValue += items[index].value;
+                        totalWeight += items[index].weight;
+                    }
+                });
+                
+                // Penalty jika melebihi kapasitas
+                if (totalWeight > capacity) {
+                    // Penalty proportional dengan kelebihan berat
+                    const overload = totalWeight - capacity;
+                    totalValue = Math.max(0, totalValue - (overload * 10)); // Penalty besar
+                }
+                
+                return {
+                    fitness: totalValue,
+                    totalValue: totalValue,
+                    totalWeight: totalWeight,
+                    isValid: totalWeight <= capacity
+                };
+            }
+
+            // Seleksi orang tua menggunakan tournament selection
+            selectParent(items, capacity) {
+                const tournamentSize = 3;
+                let best = null;
+                let bestFitness = -1;
+                
+                for (let i = 0; i < tournamentSize; i++) {
+                    const candidate = this.population[Math.floor(Math.random() * this.population.length)];
+                    const fitnessResult = this.calculateFitness(candidate, items, capacity);
+                    
+                    if (fitnessResult.fitness > bestFitness) {
+                        bestFitness = fitnessResult.fitness;
+                        best = candidate;
+                    }
+                }
+                
+                return best;
+            }
+
+            // Crossover single-point
+            crossover(parent1, parent2, crossoverRate) {
+                if (Math.random() > crossoverRate) {
+                    return [parent1.slice(), parent2.slice()];
+                }
+                
+                const crossoverPoint = Math.floor(Math.random() * parent1.length);
+                const child1 = [
+                    ...parent1.slice(0, crossoverPoint),
+                    ...parent2.slice(crossoverPoint)
+                ];
+                const child2 = [
+                    ...parent2.slice(0, crossoverPoint),
+                    ...parent1.slice(crossoverPoint)
+                ];
+                
+                return [child1, child2];
+            }
+
+            // Mutasi - flip bit
+            mutate(chromosome, mutationRate) {
+                return chromosome.map(gene => {
+                    if (Math.random() < mutationRate) {
+                        return gene === 1 ? 0 : 1;
+                    }
+                    return gene;
+                });
+            }
+
+            // Evolusi satu generasi
+            evolveGeneration(items, capacity, mutationRate, crossoverRate, elitismCount = 1) {
+                const newPopulation = [];
+                const populationSize = this.population.length;
+                
+                // Evaluasi fitness seluruh populasi
+                const populationWithFitness = this.population.map(chromosome => ({
+                    chromosome,
+                    fitness: this.calculateFitness(chromosome, items, capacity)
+                }));
+                
+                // Urutkan berdasarkan fitness (descending)
+                populationWithFitness.sort((a, b) => b.fitness.fitness - a.fitness.fitness);
+                
+                // Elitism - pertahankan solusi terbaik
+                for (let i = 0; i < elitismCount; i++) {
+                    newPopulation.push(populationWithFitness[i].chromosome);
+                }
+                
+                // Generate populasi baru
+                while (newPopulation.length < populationSize) {
+                    const parent1 = this.selectParent(items, capacity);
+                    const parent2 = this.selectParent(items, capacity);
+                    const [child1, child2] = this.crossover(parent1, parent2, crossoverRate);
+                    
+                    newPopulation.push(this.mutate(child1, mutationRate));
+                    if (newPopulation.length < populationSize) {
+                        newPopulation.push(this.mutate(child2, mutationRate));
+                    }
+                }
+                
+                this.population = newPopulation;
+                this.generation++;
+                
+                // Update solusi terbaik
+                const bestInGeneration = populationWithFitness[0];
+                if (bestInGeneration.fitness.fitness > this.bestFitness) {
+                    this.bestFitness = bestInGeneration.fitness.fitness;
+                    this.bestSolution = bestInGeneration.chromosome;
+                }
+                
+                return bestInGeneration;
+            }
+
+            // Solver utama
+            solve(items, capacity, populationSize, maxGenerations, mutationRate, crossoverRate) {
+                this.startTime = performance.now();
+                this.generation = 0;
+                this.fitnessHistory = [];
+                this.valueHistory = [];
+                this.items = items;
+                
+                if (items.length === 0) {
+                    throw new Error('Tidak ada barang yang dimasukkan');
+                }
+                
+                // Inisialisasi populasi
+                this.initializePopulation(populationSize, items.length);
+                
+                // Evolusi
+                for (let gen = 0; gen < maxGenerations; gen++) {
+                    const bestInGeneration = this.evolveGeneration(
+                        items, capacity, mutationRate, crossoverRate
+                    );
+                    
+                    this.fitnessHistory.push(bestInGeneration.fitness.fitness);
+                    this.valueHistory.push(bestInGeneration.fitness.totalValue);
+                    
+                    // Update UI
+                    this.updateProgress(gen, maxGenerations, bestInGeneration.fitness);
+                    
+                    // Cek konvergensi dini
+                    if (this.shouldStopEarly()) {
+                        break;
+                    }
+                }
+                
+                return this.getBestSolutionDetails();
+            }
+
+            // Cek apakah harus berhenti lebih awal (konvergensi)
+            shouldStopEarly() {
+                if (this.fitnessHistory.length < 20) return false;
+                
+                // Cek apakah fitness tidak membaik dalam 20 generasi terakhir
+                const recentHistory = this.fitnessHistory.slice(-20);
+                const maxRecent = Math.max(...recentHistory);
+                const minRecent = Math.min(...recentHistory);
+                
+                return (maxRecent - minRecent) < 1; // Perubahan sangat kecil
+            }
+
+            // Dapatkan detail solusi terbaik
+            getBestSolutionDetails() {
+                if (!this.bestSolution) return null;
+                
+                const capacity = parseInt(document.getElementById('knapsackCapacity').value);
+                const fitnessResult = this.calculateFitness(this.bestSolution, this.items, capacity);
+                
+                return {
+                    chromosome: this.bestSolution,
+                    totalValue: fitnessResult.totalValue,
+                    totalWeight: fitnessResult.totalWeight,
+                    isValid: fitnessResult.isValid,
+                    items: this.items.map((item, index) => ({
+                        ...item,
+                        selected: this.bestSolution[index] === 1
+                    }))
+                };
+            }
+
+            // Update progress di UI
+            updateProgress(currentGen, maxGenerations, fitnessResult) {
+                const progress = (currentGen / maxGenerations) * 100;
+                const progressFill = document.getElementById('progressFill');
+                const generationInfo = document.getElementById('generationInfo');
+                const currentGenElement = document.getElementById('currentGen');
+                const bestValueElement = document.getElementById('bestValue');
+                const totalWeightElement = document.getElementById('totalWeight');
+                
+                if (progressFill) progressFill.style.width = `${progress}%`;
+                if (generationInfo) generationInfo.textContent = `Generasi ${currentGen}/${maxGenerations}`;
+                if (currentGenElement) currentGenElement.textContent = currentGen;
+                if (bestValueElement) bestValueElement.textContent = fitnessResult.totalValue;
+                if (totalWeightElement) totalWeightElement.textContent = `${fitnessResult.totalWeight} kg`;
+            }
+
+            // Hitung waktu penyelesaian
+            getSolveTime() {
+                return (performance.now() - this.startTime).toFixed(2);
+            }
+
+            // Visualisasi konvergensi
+            drawConvergenceChart() {
+                const canvas = document.getElementById('convergenceChart');
+                if (!canvas || this.fitnessHistory.length === 0) return;
+                
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Setup grafik
+                const padding = 40;
+                const graphWidth = width - 2 * padding;
+                const graphHeight = height - 2 * padding;
+                
+                // Draw axes
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+                
+                // Draw fitness line
+                const maxFitness = Math.max(...this.fitnessHistory);
+                const minFitness = Math.min(...this.fitnessHistory);
+                const range = maxFitness - minFitness || 1;
+                
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                this.fitnessHistory.forEach((fitness, index) => {
+                    const x = padding + (index / (this.fitnessHistory.length - 1)) * graphWidth;
+                    const y = height - padding - ((fitness - minFitness) / range) * graphHeight;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+                
+                // Draw labels
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Generasi', width / 2, height - 10);
+                ctx.save();
+                ctx.translate(10, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Fitness', 0, 0);
+                ctx.restore();
+                
+                // Draw value points
+                ctx.fillStyle = '#48bb78';
+                this.valueHistory.forEach((value, index) => {
+                    if (value > 0) { // Hanya draw nilai valid
+                        const x = padding + (index / (this.valueHistory.length - 1)) * graphWidth;
+                        const y = height - padding - ((value - minFitness) / range) * graphHeight;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                });
+            }
+        }
+
+        // Instance solver
+        const solver = new KnapsackGeneticSolver();
+
+        // Data barang default
+        let items = [
+            { name: "Laptop", weight: 3, value: 800 },
+            { name: "Kamera", weight: 2, value: 500 },
+            { name: "Buku", weight: 1, value: 50 },
+            { name: "Botol Air", weight: 1, value: 10 },
+            { name: "Jaket", weight: 2, value: 100 },
+            { name: "Powerbank", weight: 1, value: 80 }
+        ];
+
+        // Initialize items list
+        function initializeItems() {
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const itemRow = document.createElement('div');
+                itemRow.className = 'item-row';
+                itemRow.innerHTML = `
+                    <input type="text" value="${item.name}" placeholder="Nama barang" 
+                           onchange="updateItem(${index}, 'name', this.value)">
+                    <input type="number" value="${item.weight}" placeholder="Berat" 
+                           onchange="updateItem(${index}, 'weight', parseFloat(this.value))">
+                    <input type="number" value="${item.value}" placeholder="Nilai" 
+                           onchange="updateItem(${index}, 'value', parseFloat(this.value))">
+                    <span>Ratio: ${(item.value / item.weight).toFixed(2)}</span>
+                    <button class="remove-item" onclick="removeItem(${index})">×</button>
+                `;
+                itemsList.appendChild(itemRow);
+            });
+        }
+
+        // Update item data
+        function updateItem(index, property, value) {
+            items[index][property] = value;
+            // Update ratio display
+            const itemRow = document.querySelectorAll('.item-row')[index];
+            const ratioSpan = itemRow.querySelector('span');
+            ratioSpan.textContent = `Ratio: ${(items[index].value / items[index].weight).toFixed(2)}`;
+        }
+
+        // Remove item
+        function removeItem(index) {
+            if (items.length > 1) {
+                items.splice(index, 1);
+                initializeItems();
+            } else {
+                alert('Minimal harus ada 1 barang');
+            }
+        }
+
+        // Add new item
+        function addItem() {
+            items.push({
+                name: `Barang ${items.length + 1}`,
+                weight: 1,
+                value: 50
+            });
+            initializeItems();
+        }
+
+        // Fungsi utama untuk menyelesaikan masalah ransel
+        function solveKnapsack() {
+            try {
+                const capacity = parseInt(document.getElementById('knapsackCapacity').value);
+                const populationSize = parseInt(document.getElementById('populationSize').value);
+                const maxGenerations = parseInt(document.getElementById('maxGenerations').value);
+                const mutationRate = parseFloat(document.getElementById('mutationRate').value);
+                const crossoverRate = parseFloat(document.getElementById('crossoverRate').value);
+                
+                const solution = solver.solve(items, capacity, populationSize, maxGenerations, mutationRate, crossoverRate);
+                
+                // Display results
+                displaySolution(solution, solver.getSolveTime());
+                solver.drawConvergenceChart();
+                
+                // Update waktu
+                document.getElementById('solveTime').textContent = `${solver.getSolveTime()}ms`;
+                
+            } catch (error) {
+                document.getElementById('solutionDisplay').innerHTML = 
+                    `<p style="color: #e53e3e;">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Menampilkan solusi
+        function displaySolution(solution, solveTime) {
+            const solutionDisplay = document.getElementById('solutionDisplay');
+            const solutionDetails = document.getElementById('solutionDetails');
+            
+            if (!solution) {
+                solutionDisplay.innerHTML = '<p>Tidak ditemukan solusi yang memadai</p>';
+                return;
+            }
+            
+            // Display summary
+            let html = '<div class="solution-result">';
+            html += `<h3>✅ ${solution.isValid ? 'SOLUSI OPTIMAL DITEMUKAN!' : 'Solusi (melebihi kapasitas)'}</h3>`;
+            html += `<p><strong>Total Nilai:</strong> ${solution.totalValue}</p>`;
+            html += `<p><strong>Total Berat:</strong> ${solution.totalWeight} kg / ${document.getElementById('knapsackCapacity').value} kg</p>`;
+            html += `<p><strong>Jumlah Barang:</strong> ${solution.items.filter(item => item.selected).length} dari ${items.length}</p>`;
+            html += `<p><strong>Waktu:</strong> ${solveTime} ms</p>`;
+            html += `<p><strong>Generasi:</strong> ${solver.generation}</p>`;
+            html += `</div>`;
+            
+            solutionDisplay.innerHTML = html;
+            
+            // Display detailed items
+            let detailsHtml = '<h4>Barang yang Dipilih:</h4>';
+            solution.items.forEach((item, index) => {
+                detailsHtml += `
+                    <div class="solution-item ${item.selected ? 'included' : 'excluded'}">
+                        <div class="item-info">
+                            <strong>${item.name}</strong>
+                            <div class="item-stats">
+                                Berat: ${item.weight}kg | Nilai: ${item.value} | Ratio: ${(item.value / item.weight).toFixed(2)}
+                            </div>
+                        </div>
+                        <span>${item.selected ? '✅' : '❌'}</span>
+                    </div>
+                `;
+            });
+            
+            solutionDetails.innerHTML = detailsHtml;
+        }
+
+        // Initialize the page
+        window.addEventListener('load', function() {
+            initializeItems();
+            solver.drawConvergenceChart();
+        });
+
+        // Event listener untuk input enter
+        document.getElementById('knapsackCapacity').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                solveKnapsack();
+            }
+        });
+    </script>
 </body>
 </html>
