@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathSolver GA - Kelompok Gacorrr</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🧮 MathSolver GA</h1>
+            <p class="subtitle">Menyelesaikan Persamaan Linear dengan Algoritma Genetika</p>
+            <div class="team-info">
+                <strong>Kelompok Gacorrr</strong>
+                <span>Algoritma Genetika - Tugas Kuliah</span>
+            </div>
+        </header>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <h2>📝 Masukkan Sistem Persamaan</h2>
+            <div class="input-group">
+                <textarea id="equationInput" placeholder="Contoh:
+2x + 3y = 12
+x - y = 1
+(Untuk 2 variabel: x dan y)">2x + 3y = 12
+x - y = 1</textarea>
+                
+                <div class="control-panel">
+                    <div class="param-group">
+                        <label>Populasi:</label>
+                        <input type="number" id="populationSize" value="100" min="50" max="1000">
+                    </div>
+                    <div class="param-group">
+                        <label>Generasi:</label>
+                        <input type="number" id="maxGenerations" value="100" min="10" max="500">
+                    </div>
+                    <div class="param-group">
+                        <label>Mutation Rate:</label>
+                        <input type="number" id="mutationRate" value="0.1" min="0.01" max="0.5" step="0.01">
+                    </div>
+                </div>
+
+                <button onclick="solveEquations()" class="solve-btn">🎯 Solve dengan Algoritma Genetika!</button>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section">
+            <div class="solution-container">
+                <h2>💡 Solusi</h2>
+                <div id="solutionDisplay" class="solution-display">
+                    <p>Masukkan persamaan dan klik "Solve"</p>
+                </div>
+            </div>
+
+            <div class="evolution-info">
+                <h2>📊 Proses Evolusi</h2>
+                <div id="evolutionProgress" class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <div id="generationInfo" class="generation-info"></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Generasi</span>
+                        <span id="currentGen" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Fitness Terbaik</span>
+                        <span id="bestFitness" class="stat-value">0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Error</span>
+                        <span id="currentError" class="stat-value">0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Waktu</span>
+                        <span id="solveTime" class="stat-value">0ms</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualization -->
+        <section class="visualization-section">
+            <h2>📈 Visualisasi Konvergensi</h2>
+            <canvas id="convergenceChart" width="800" height="300"></canvas>
+        </section>
+
+        <!-- Algorithm Explanation -->
+        <section class="explanation-section">
+            <h2>🔍 Cara Kerja Algoritma Genetika</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Inisialisasi</h3>
+                    <p>Membuat populasi awal solusi acak untuk variabel x, y, z...</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Evaluasi Fitness</h3>
+                    <p>Menghitung seberapa baik setiap solusi memenuhi persamaan</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Seleksi</h3>
+                    <p>Memilih solusi terbaik untuk menjadi orang tua generasi berikutnya</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Crossover</h3>
+                    <p>Menggabungkan solusi orang tua untuk menghasilkan solusi anak</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Mutasi</h3>
+                    <p>Mengubah secara acak beberapa solusi untuk menjaga keragaman</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <h3>Konvergensi</h3>
+                    <p>Mengulangi proses hingga solusi optimal ditemukan</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Info -->
+        <footer class="team-section">
+            <h2>👥 Kelompok Gacorrr</h2>
+            <div class="team-members">
+                <div class="member-card">
+                    <h4>Ketua</h4>
+                    <p>Nama Anggota 1</p>
+                    <span>NIM: 123456789</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota</h4>
+                    <p>Nama Anggota 2</p>
+                    <span>NIM: 123456790</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota</h4>
+                    <p>Nama Anggota 3</p>
+                    <span>NIM: 123456791</span>
+                </div>
+                <div class="member-card">
+                    <h4>Anggota</h4>
+                    <p>Nama Anggota 4</p>
+                    <span>NIM: 123456792</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
