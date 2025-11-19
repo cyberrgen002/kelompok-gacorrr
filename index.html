@@ -3,56 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MathSolver GA - Kelompok Gacorrr</title>
+    <title>Knapsack Solver GA - Kelompok Gacorrr</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>🧮 MathSolver GA</h1>
-            <p class="subtitle">Menyelesaikan Persamaan Linear dengan Algoritma Genetika</p>
+            <h1>🎒 Knapsack Solver GA</h1>
+            <p class="subtitle">Menyelesaikan Masalah Ransel dengan Algoritma Genetika</p>
             <div class="team-info">
                 <strong>Kelompok Gacorrr</strong>
                 <span>Algoritma Genetika - Tugas Kuliah</span>
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="input-section">
-            <h2>📝 Masukkan Sistem Persamaan</h2>
-            <div class="input-group">
-                <textarea id="equationInput" placeholder="Contoh:
-2x + 3y = 12
-x - y = 1
-(Untuk 2 variabel: x dan y)">2x + 3y = 12
-x - y = 1</textarea>
-                
-                <div class="control-panel">
-                    <div class="param-group">
-                        <label>Populasi:</label>
-                        <input type="number" id="populationSize" value="100" min="50" max="1000">
-                    </div>
-                    <div class="param-group">
-                        <label>Generasi:</label>
-                        <input type="number" id="maxGenerations" value="100" min="10" max="500">
-                    </div>
-                    <div class="param-group">
-                        <label>Mutation Rate:</label>
-                        <input type="number" id="mutationRate" value="0.1" min="0.01" max="0.5" step="0.01">
-                    </div>
+        <!-- Problem Setup Section -->
+        <section class="problem-section">
+            <h2>⚙️ Setup Masalah Ransel</h2>
+            <div class="setup-container">
+                <div class="capacity-input">
+                    <label for="knapsackCapacity">Kapasitas Maksimum Ransel (kg):</label>
+                    <input type="number" id="knapsackCapacity" value="15" min="1" max="100">
                 </div>
-
-                <button onclick="solveEquations()" class="solve-btn">🎯 Solve dengan Algoritma Genetika!</button>
+                
+                <div class="items-container">
+                    <h3>Daftar Barang</h3>
+                    <div class="items-list" id="itemsList">
+                        <!-- Items will be generated here -->
+                    </div>
+                    <button onclick="addItem()" class="add-item-btn">+ Tambah Barang</button>
+                </div>
             </div>
+        </section>
+
+        <!-- GA Parameters -->
+        <section class="parameters-section">
+            <h2>🎯 Parameter Algoritma Genetika</h2>
+            <div class="param-grid">
+                <div class="param-group">
+                    <label for="populationSize">Ukuran Populasi:</label>
+                    <input type="number" id="populationSize" value="50" min="20" max="200">
+                </div>
+                <div class="param-group">
+                    <label for="maxGenerations">Maksimum Generasi:</label>
+                    <input type="number" id="maxGenerations" value="100" min="10" max="500">
+                </div>
+                <div class="param-group">
+                    <label for="mutationRate">Laju Mutasi:</label>
+                    <input type="number" id="mutationRate" value="0.1" min="0.01" max="0.5" step="0.01">
+                </div>
+                <div class="param-group">
+                    <label for="crossoverRate">Laju Crossover:</label>
+                    <input type="number" id="crossoverRate" value="0.8" min="0.1" max="1" step="0.1">
+                </div>
+            </div>
+            <button onclick="solveKnapsack()" class="solve-btn">🚀 Solve Masalah Ransel!</button>
         </section>
 
         <!-- Results Section -->
         <section class="results-section">
             <div class="solution-container">
-                <h2>💡 Solusi</h2>
+                <h2>💡 Solusi Optimal</h2>
                 <div id="solutionDisplay" class="solution-display">
-                    <p>Masukkan persamaan dan klik "Solve"</p>
+                    <p>Klik "Solve" untuk menemukan solusi terbaik</p>
                 </div>
             </div>
 
@@ -71,12 +85,12 @@ x - y = 1</textarea>
                         <span id="currentGen" class="stat-value">0</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-label">Fitness Terbaik</span>
-                        <span id="bestFitness" class="stat-value">0.00</span>
+                        <span class="stat-label">Nilai Terbaik</span>
+                        <span id="bestValue" class="stat-value">0</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-label">Error</span>
-                        <span id="currentError" class="stat-value">0.00</span>
+                        <span class="stat-label">Berat Total</span>
+                        <span id="totalWeight" class="stat-value">0</span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">Waktu</span>
@@ -88,43 +102,59 @@ x - y = 1</textarea>
 
         <!-- Visualization -->
         <section class="visualization-section">
-            <h2>📈 Visualisasi Konvergensi</h2>
-            <canvas id="convergenceChart" width="800" height="300"></canvas>
+            <h2>📈 Grafik Konvergensi</h2>
+            <div class="chart-container">
+                <canvas id="convergenceChart" width="800" height="300"></canvas>
+            </div>
+        </section>
+
+        <!-- Best Solution Details -->
+        <section class="details-section">
+            <h2>📦 Detail Solusi Terbaik</h2>
+            <div id="solutionDetails" class="solution-details">
+                <p>Solusi akan ditampilkan di sini setelah proses evolusi</p>
+            </div>
         </section>
 
         <!-- Algorithm Explanation -->
         <section class="explanation-section">
-            <h2>🔍 Cara Kerja Algoritma Genetika</h2>
+            <h2>🔍 Cara Kerja Algoritma Genetika untuk Masalah Ransel</h2>
             <div class="steps-grid">
                 <div class="step-card">
                     <div class="step-number">1</div>
-                    <h3>Inisialisasi</h3>
-                    <p>Membuat populasi awal solusi acak untuk variabel x, y, z...</p>
+                    <h3>Representasi Kromosom</h3>
+                    <p>Setiap kromosom adalah string biner (0/1) yang mewakili pilihan barang</p>
+                    <div class="example">Contoh: [1,0,1,1] = bawa barang 1,3,4</div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">2</div>
-                    <h3>Evaluasi Fitness</h3>
-                    <p>Menghitung seberapa baik setiap solusi memenuhi persamaan</p>
+                    <h3>Fungsi Fitness</h3>
+                    <p>Menghitung total nilai barang, dengan penalty jika melebihi kapasitas</p>
+                    <div class="example">Fitness = Total Nilai - Penalty</div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">3</div>
                     <h3>Seleksi</h3>
-                    <p>Memilih solusi terbaik untuk menjadi orang tua generasi berikutnya</p>
+                    <p>Memilih kromosom terbaik sebagai orang tua generasi berikutnya</p>
+                    <div class="example">Tournament Selection</div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">4</div>
                     <h3>Crossover</h3>
-                    <p>Menggabungkan solusi orang tua untuk menghasilkan solusi anak</p>
+                    <p>Menggabungkan dua kromosom orang tua menghasilkan anak</p>
+                    <div class="example">Single-point Crossover</div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">5</div>
                     <h3>Mutasi</h3>
-                    <p>Mengubah secara acak beberapa solusi untuk menjaga keragaman</p>
+                    <p>Mengubah secara acak beberapa gen untuk menjaga keragaman</p>
+                    <div class="example">Flip bit dengan probabilitas kecil</div>
                 </div>
                 <div class="step-card">
                     <div class="step-number">6</div>
-                    <h3>Konvergensi</h3>
-                    <p>Mengulangi proses hingga solusi optimal ditemukan</p>
+                    <h3>Elitism</h3>
+                    <p>Mempertahankan solusi terbaik ke generasi berikutnya</p>
+                    <div class="example">Pertahankan kromosom terbaik</div>
                 </div>
             </div>
         </section>
