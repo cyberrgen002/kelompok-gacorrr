@@ -1,103 +1,67 @@
-// KELOMPOK GACORRR - ALGORITMA GENETICA
-// Tugas Mata Kuliah Kecerdasan Buatan
+// KELOMPOK GACORRR - ALGORITMA GENETIKA
+// Tugas Mata Kuliah - Knapsack Problem Solver
 
-class GeneticEquationSolver {
+class KnapsackGeneticSolver {
     constructor() {
         this.population = [];
         this.bestSolution = null;
         this.bestFitness = 0;
         this.generation = 0;
         this.fitnessHistory = [];
+        this.valueHistory = [];
         this.startTime = 0;
-    }
-
-    // Parse persamaan dari input text
-    parseEquations(input) {
-        const lines = input.split('\n').filter(line => line.trim());
-        const equations = [];
-        const variables = new Set();
-
-        lines.forEach(line => {
-            const [left, right] = line.split('=').map(s => s.trim());
-            const constant = parseFloat(right);
-            
-            // Extract coefficients and variables
-            const terms = left.split(/[+-]/).map(term => term.trim());
-            const equation = { coefficients: {}, constant };
-            
-            terms.forEach(term => {
-                if (term) {
-                    const match = term.match(/([-+]?\d*\.?\d*)([a-z])?/i);
-                    if (match) {
-                        let coefficient = match[1];
-                        const variable = match[2];
-                        
-                        if (coefficient === '' || coefficient === '+') coefficient = '1';
-                        if (coefficient === '-') coefficient = '-1';
-                        
-                        const coeffValue = parseFloat(coefficient) || 1;
-                        
-                        if (variable) {
-                            equation.coefficients[variable] = (equation.coefficients[variable] || 0) + coeffValue;
-                            variables.add(variable);
-                        } else {
-                            equation.constant -= coeffValue;
-                        }
-                    }
-                }
-            });
-            
-            equations.push(equation);
-        });
-
-        return { equations, variables: Array.from(variables) };
+        this.items = [];
     }
 
     // Inisialisasi populasi acak
-    initializePopulation(populationSize, variables) {
+    initializePopulation(populationSize, numItems) {
         this.population = [];
         for (let i = 0; i < populationSize; i++) {
-            const chromosome = {};
-            variables.forEach(variable => {
-                chromosome[variable] = (Math.random() - 0.5) * 20; // Nilai antara -10 sampai 10
-            });
+            const chromosome = Array(numItems).fill(0).map(() => Math.random() > 0.5 ? 1 : 0);
             this.population.push(chromosome);
         }
     }
 
-    // Fungsi fitness - menghitung seberapa baik solusi memenuhi persamaan
-    calculateFitness(chromosome, equations) {
-        let totalError = 0;
+    // Fungsi fitness - menghitung total nilai dengan penalty untuk overload
+    calculateFitness(chromosome, items, capacity) {
+        let totalValue = 0;
+        let totalWeight = 0;
         
-        equations.forEach(equation => {
-            let leftSideValue = 0;
-            
-            // Hitung nilai sisi kiri persamaan
-            Object.entries(equation.coefficients).forEach(([variable, coefficient]) => {
-                leftSideValue += coefficient * (chromosome[variable] || 0);
-            });
-            
-            // Error = selisih antara sisi kiri dan kanan
-            const error = Math.abs(leftSideValue - equation.constant);
-            totalError += error;
+        // Hitung total nilai dan berat
+        chromosome.forEach((gene, index) => {
+            if (gene === 1) {
+                totalValue += items[index].value;
+                totalWeight += items[index].weight;
+            }
         });
         
-        // Fitness lebih tinggi = error lebih kecil
-        return 1 / (1 + totalError);
+        // Penalty jika melebihi kapasitas
+        if (totalWeight > capacity) {
+            // Penalty proportional dengan kelebihan berat
+            const overload = totalWeight - capacity;
+            totalValue = Math.max(0, totalValue - (overload * 10)); // Penalty besar
+        }
+        
+        return {
+            fitness: totalValue,
+            totalValue: totalValue,
+            totalWeight: totalWeight,
+            isValid: totalWeight <= capacity
+        };
     }
 
     // Seleksi orang tua menggunakan tournament selection
-    selectParent(equations) {
-        const tournamentSize = 5;
+    selectParent(items, capacity) {
+        const tournamentSize = 3;
         let best = null;
         let bestFitness = -1;
         
         for (let i = 0; i < tournamentSize; i++) {
             const candidate = this.population[Math.floor(Math.random() * this.population.length)];
-            const fitness = this.calculateFitness(candidate, equations);
+            const fitnessResult = this.calculateFitness(candidate, items, capacity);
             
-            if (fitness > bestFitness) {
-                bestFitness = fitness;
+            if (fitnessResult.fitness > bestFitness) {
+                bestFitness = fitnessResult.fitness;
                 best = candidate;
             }
         }
@@ -105,126 +69,160 @@ class GeneticEquationSolver {
         return best;
     }
 
-    // Crossover - menghasilkan anak dari dua orang tua
-    crossover(parent1, parent2, variables) {
-        const child = {};
-        const alpha = Math.random(); // BLX-alpha crossover
+    // Crossover single-point
+    crossover(parent1, parent2, crossoverRate) {
+        if (Math.random() > crossoverRate) {
+            return [parent1.slice(), parent2.slice()];
+        }
         
-        variables.forEach(variable => {
-            const minVal = Math.min(parent1[variable], parent2[variable]);
-            const maxVal = Math.max(parent1[variable], parent2[variable]);
-            const range = maxVal - minVal;
-            
-            child[variable] = minVal + (Math.random() * (1 + 2 * alpha) - alpha) * range;
-        });
+        const crossoverPoint = Math.floor(Math.random() * parent1.length);
+        const child1 = [
+            ...parent1.slice(0, crossoverPoint),
+            ...parent2.slice(crossoverPoint)
+        ];
+        const child2 = [
+            ...parent2.slice(0, crossoverPoint),
+            ...parent1.slice(crossoverPoint)
+        ];
         
-        return child;
+        return [child1, child2];
     }
 
-    // Mutasi - mengubah nilai variabel secara acak
-    mutate(chromosome, mutationRate, variables) {
-        const mutated = {...chromosome};
-        
-        variables.forEach(variable => {
+    // Mutasi - flip bit
+    mutate(chromosome, mutationRate) {
+        return chromosome.map(gene => {
             if (Math.random() < mutationRate) {
-                mutated[variable] += (Math.random() - 0.5) * 4; // Mutasi kecil
+                return gene === 1 ? 0 : 1;
             }
+            return gene;
         });
-        
-        return mutated;
     }
 
     // Evolusi satu generasi
-    evolveGeneration(equations, variables, mutationRate) {
+    evolveGeneration(items, capacity, mutationRate, crossoverRate, elitismCount = 1) {
         const newPopulation = [];
+        const populationSize = this.population.length;
+        
+        // Evaluasi fitness seluruh populasi
+        const populationWithFitness = this.population.map(chromosome => ({
+            chromosome,
+            fitness: this.calculateFitness(chromosome, items, capacity)
+        }));
+        
+        // Urutkan berdasarkan fitness (descending)
+        populationWithFitness.sort((a, b) => b.fitness.fitness - a.fitness.fitness);
         
         // Elitism - pertahankan solusi terbaik
-        newPopulation.push({...this.bestSolution});
+        for (let i = 0; i < elitismCount; i++) {
+            newPopulation.push(populationWithFitness[i].chromosome);
+        }
         
         // Generate populasi baru
-        while (newPopulation.length < this.population.length) {
-            const parent1 = this.selectParent(equations);
-            const parent2 = this.selectParent(equations);
-            let child = this.crossover(parent1, parent2, variables);
-            child = this.mutate(child, mutationRate, variables);
-            newPopulation.push(child);
+        while (newPopulation.length < populationSize) {
+            const parent1 = this.selectParent(items, capacity);
+            const parent2 = this.selectParent(items, capacity);
+            const [child1, child2] = this.crossover(parent1, parent2, crossoverRate);
+            
+            newPopulation.push(this.mutate(child1, mutationRate));
+            if (newPopulation.length < populationSize) {
+                newPopulation.push(this.mutate(child2, mutationRate));
+            }
         }
         
         this.population = newPopulation;
         this.generation++;
+        
+        // Update solusi terbaik
+        const bestInGeneration = populationWithFitness[0];
+        if (bestInGeneration.fitness.fitness > this.bestFitness) {
+            this.bestFitness = bestInGeneration.fitness.fitness;
+            this.bestSolution = bestInGeneration.chromosome;
+        }
+        
+        return bestInGeneration;
     }
 
     // Solver utama
-    solve(input, populationSize, maxGenerations, mutationRate) {
+    solve(items, capacity, populationSize, maxGenerations, mutationRate, crossoverRate) {
         this.startTime = performance.now();
         this.generation = 0;
         this.fitnessHistory = [];
+        this.valueHistory = [];
+        this.items = items;
         
-        // Parse input
-        const { equations, variables } = this.parseEquations(input);
-        
-        if (variables.length === 0) {
-            throw new Error('Tidak ada variabel yang ditemukan dalam persamaan');
+        if (items.length === 0) {
+            throw new Error('Tidak ada barang yang dimasukkan');
         }
         
         // Inisialisasi populasi
-        this.initializePopulation(pulationSize, variables);
+        this.initializePopulation(populationSize, items.length);
         
         // Evolusi
         for (let gen = 0; gen < maxGenerations; gen++) {
-            // Evaluasi fitness
-            let generationBestFitness = 0;
-            let generationBestSolution = null;
+            const bestInGeneration = this.evolveGeneration(
+                items, capacity, mutationRate, crossoverRate
+            );
             
-            this.population.forEach(chromosome => {
-                const fitness = this.calculateFitness(chromosome, equations);
-                
-                if (fitness > generationBestFitness) {
-                    generationBestFitness = fitness;
-                    generationBestSolution = {...chromosome};
-                }
-            });
-            
-            // Update solusi terbaik global
-            if (generationBestFitness > this.bestFitness) {
-                this.bestFitness = generationBestFitness;
-                this.bestSolution = generationBestSolution;
-            }
-            
-            this.fitnessHistory.push(this.bestFitness);
+            this.fitnessHistory.push(bestInGeneration.fitness.fitness);
+            this.valueHistory.push(bestInGeneration.fitness.totalValue);
             
             // Update UI
-            this.updateProgress(gen, maxGenerations);
+            this.updateProgress(gen, maxGenerations, bestInGeneration.fitness);
             
-            // Cek konvergensi
-            if (this.bestFitness > 0.999) {
+            // Cek konvergensi dini
+            if (this.shouldStopEarly()) {
                 break;
             }
-            
-            // Evolusi ke generasi berikutnya
-            this.evolveGeneration(equations, variables, mutationRate);
         }
         
-        return this.bestSolution;
+        return this.getBestSolutionDetails();
+    }
+
+    // Cek apakah harus berhenti lebih awal (konvergensi)
+    shouldStopEarly() {
+        if (this.fitnessHistory.length < 20) return false;
+        
+        // Cek apakah fitness tidak membaik dalam 20 generasi terakhir
+        const recentHistory = this.fitnessHistory.slice(-20);
+        const maxRecent = Math.max(...recentHistory);
+        const minRecent = Math.min(...recentHistory);
+        
+        return (maxRecent - minRecent) < 1; // Perubahan sangat kecil
+    }
+
+    // Dapatkan detail solusi terbaik
+    getBestSolutionDetails() {
+        if (!this.bestSolution) return null;
+        
+        const capacity = parseInt(document.getElementById('knapsackCapacity').value);
+        const fitnessResult = this.calculateFitness(this.bestSolution, this.items, capacity);
+        
+        return {
+            chromosome: this.bestSolution,
+            totalValue: fitnessResult.totalValue,
+            totalWeight: fitnessResult.totalWeight,
+            isValid: fitnessResult.isValid,
+            items: this.items.map((item, index) => ({
+                ...item,
+                selected: this.bestSolution[index] === 1
+            }))
+        };
     }
 
     // Update progress di UI
-    updateProgress(currentGen, maxGenerations) {
+    updateProgress(currentGen, maxGenerations, fitnessResult) {
         const progress = (currentGen / maxGenerations) * 100;
         const progressFill = document.getElementById('progressFill');
         const generationInfo = document.getElementById('generationInfo');
         const currentGenElement = document.getElementById('currentGen');
-        const bestFitnessElement = document.getElementById('bestFitness');
-        const currentErrorElement = document.getElementById('currentError');
+        const bestValueElement = document.getElementById('bestValue');
+        const totalWeightElement = document.getElementById('totalWeight');
         
         if (progressFill) progressFill.style.width = `${progress}%`;
         if (generationInfo) generationInfo.textContent = `Generasi ${currentGen}/${maxGenerations}`;
         if (currentGenElement) currentGenElement.textContent = currentGen;
-        if (bestFitnessElement) bestFitnessElement.textContent = this.bestFitness.toFixed(4);
-        if (currentErrorElement) {
-            const error = (1 - this.bestFitness).toFixed(6);
-            currentErrorElement.textContent = error;
-        }
+        if (bestValueElement) bestValueElement.textContent = fitnessResult.totalValue;
+        if (totalWeightElement) totalWeightElement.textContent = `${fitnessResult.totalWeight} kg`;
     }
 
     // Hitung waktu penyelesaian
@@ -235,7 +233,7 @@ class GeneticEquationSolver {
     // Visualisasi konvergensi
     drawConvergenceChart() {
         const canvas = document.getElementById('convergenceChart');
-        if (!canvas) return;
+        if (!canvas || this.fitnessHistory.length === 0) return;
         
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
@@ -243,8 +241,6 @@ class GeneticEquationSolver {
         
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
-        
-        if (this.fitnessHistory.length === 0) return;
         
         // Setup grafik
         const padding = 40;
@@ -261,13 +257,17 @@ class GeneticEquationSolver {
         ctx.stroke();
         
         // Draw fitness line
+        const maxFitness = Math.max(...this.fitnessHistory);
+        const minFitness = Math.min(...this.fitnessHistory);
+        const range = maxFitness - minFitness || 1;
+        
         ctx.strokeStyle = '#667eea';
         ctx.lineWidth = 2;
         ctx.beginPath();
         
         this.fitnessHistory.forEach((fitness, index) => {
             const x = padding + (index / (this.fitnessHistory.length - 1)) * graphWidth;
-            const y = height - padding - (fitness * graphHeight);
+            const y = height - padding - ((fitness - minFitness) / range) * graphHeight;
             
             if (index === 0) {
                 ctx.moveTo(x, y);
@@ -288,24 +288,98 @@ class GeneticEquationSolver {
         ctx.rotate(-Math.PI / 2);
         ctx.fillText('Fitness', 0, 0);
         ctx.restore();
+        
+        // Draw value points
+        ctx.fillStyle = '#48bb78';
+        this.valueHistory.forEach((value, index) => {
+            if (value > 0) { // Hanya draw nilai valid
+                const x = padding + (index / (this.valueHistory.length - 1)) * graphWidth;
+                const y = height - padding - ((value - minFitness) / range) * graphHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        });
     }
 }
 
 // Instance solver
-const solver = new GeneticEquationSolver();
+const solver = new KnapsackGeneticSolver();
 
-// Fungsi utama untuk menyelesaikan persamaan
-function solveEquations() {
+// Data barang default
+let items = [
+    { name: "Laptop", weight: 3, value: 800 },
+    { name: "Kamera", weight: 2, value: 500 },
+    { name: "Buku", weight: 1, value: 50 },
+    { name: "Botol Air", weight: 1, value: 10 },
+    { name: "Jaket", weight: 2, value: 100 },
+    { name: "Powerbank", weight: 1, value: 80 }
+];
+
+// Initialize items list
+function initializeItems() {
+    const itemsList = document.getElementById('itemsList');
+    itemsList.innerHTML = '';
+    
+    items.forEach((item, index) => {
+        const itemRow = document.createElement('div');
+        itemRow.className = 'item-row';
+        itemRow.innerHTML = `
+            <input type="text" value="${item.name}" placeholder="Nama barang" 
+                   onchange="updateItem(${index}, 'name', this.value)">
+            <input type="number" value="${item.weight}" placeholder="Berat" 
+                   onchange="updateItem(${index}, 'weight', parseFloat(this.value))">
+            <input type="number" value="${item.value}" placeholder="Nilai" 
+                   onchange="updateItem(${index}, 'value', parseFloat(this.value))">
+            <span>Ratio: ${(item.value / item.weight).toFixed(2)}</span>
+            <button class="remove-item" onclick="removeItem(${index})">×</button>
+        `;
+        itemsList.appendChild(itemRow);
+    });
+}
+
+// Update item data
+function updateItem(index, property, value) {
+    items[index][property] = value;
+    // Update ratio display
+    const itemRow = document.querySelectorAll('.item-row')[index];
+    const ratioSpan = itemRow.querySelector('span');
+    ratioSpan.textContent = `Ratio: ${(items[index].value / items[index].weight).toFixed(2)}`;
+}
+
+// Remove item
+function removeItem(index) {
+    if (items.length > 1) {
+        items.splice(index, 1);
+        initializeItems();
+    } else {
+        alert('Minimal harus ada 1 barang');
+    }
+}
+
+// Add new item
+function addItem() {
+    items.push({
+        name: `Barang ${items.length + 1}`,
+        weight: 1,
+        value: 50
+    });
+    initializeItems();
+}
+
+// Fungsi utama untuk menyelesaikan masalah ransel
+function solveKnapsack() {
     try {
-        const equationInput = document.getElementById('equationInput').value;
+        const capacity = parseInt(document.getElementById('knapsackCapacity').value);
         const populationSize = parseInt(document.getElementById('populationSize').value);
         const maxGenerations = parseInt(document.getElementById('maxGenerations').value);
         const mutationRate = parseFloat(document.getElementById('mutationRate').value);
+        const crossoverRate = parseFloat(document.getElementById('crossoverRate').value);
         
-        const solution = solver.solve(equationInput, populationSize, maxGenerations, mutationRate);
+        const solution = solver.solve(items, capacity, populationSize, maxGenerations, mutationRate, crossoverRate);
         
         // Display results
-        displaySolution(solution, solver.bestFitness, solver.getSolveTime());
+        displaySolution(solution, solver.getSolveTime());
         solver.drawConvergenceChart();
         
         // Update waktu
@@ -318,87 +392,23 @@ function solveEquations() {
 }
 
 // Menampilkan solusi
-function displaySolution(solution, fitness, solveTime) {
+function displaySolution(solution, solveTime) {
     const solutionDisplay = document.getElementById('solutionDisplay');
+    const solutionDetails = document.getElementById('solutionDetails');
     
     if (!solution) {
         solutionDisplay.innerHTML = '<p>Tidak ditemukan solusi yang memadai</p>';
         return;
     }
     
+    // Display summary
     let html = '<div class="solution-result">';
-    html += '<h3>✅ Solusi Ditemukan!</h3>';
-    
-    Object.entries(solution).forEach(([variable, value]) => {
-        html += `<p><strong>${variable}</strong> = ${value.toFixed(6)}</p>`;
-    });
-    
-    html += `<div class="solution-stats">`;
-    html += `<p><strong>Fitness:</strong> ${fitness.toFixed(6)}</p>`;
-    html += `<p><strong>Error:</strong> ${(1 - fitness).toFixed(6)}</p>`;
+    html += `<h3>✅ ${solution.isValid ? 'SOLUSI OPTIMAL DITEMUKAN!' : 'Solusi (melebihi kapasitas)'}</h3>`;
+    html += `<p><strong>Total Nilai:</strong> ${solution.totalValue}</p>`;
+    html += `<p><strong>Total Berat:</strong> ${solution.totalWeight} kg / ${document.getElementById('knapsackCapacity').value} kg</p>`;
+    html += `<p><strong>Jumlah Barang:</strong> ${solution.items.filter(item => item.selected).length} dari ${items.length}</p>`;
     html += `<p><strong>Waktu:</strong> ${solveTime} ms</p>`;
     html += `<p><strong>Generasi:</strong> ${solver.generation}</p>`;
     html += `</div>`;
     
-    // Verifikasi solusi
-    html += `<div class="verification">`;
-    html += `<h4>Verifikasi:</h4>`;
-    
-    const { equations } = solver.parseEquations(document.getElementById('equationInput').value);
-    equations.forEach((equation, idx) => {
-        let leftSide = 0;
-        Object.entries(equation.coefficients).forEach(([variable, coefficient]) => {
-            leftSide += coefficient * solution[variable];
-        });
-        const error = Math.abs(leftSide - equation.constant);
-        html += `<p>Persamaan ${idx + 1}: ${leftSide.toFixed(4)} ≈ ${equation.constant} (error: ${error.toFixed(6)})</p>`;
-    });
-    
-    html += `</div></div>`;
-    
-    solutionDisplay.innerHTML = html;
-}
-
-// Event listener untuk input enter
-document.getElementById('equationInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && e.ctrlKey) {
-        solveEquations();
-    }
-});
-
-// Initialize dengan contoh
-window.addEventListener('load', function() {
-    solver.drawConvergenceChart();
-});
-
-// KETERANGAN KELOMPOK GACORRR:
-/*
-ANGGOTA KELOMPOK:
-1. [Nama Lengkap] - [NIM] - Sebagai Ketua
-2. [Nama Lengkap] - [NIM] - Anggota
-3. [Nama Lengkap] - [NIM] - Anggota  
-4. [Nama Lengkap] - [NIM] - Anggota
-
-DESKRIPSI TUGAS:
-Website ini mengimplementasikan Algoritma Genetika untuk menyelesaikan
-sistem persamaan linear. Algoritma bekerja dengan mensimulasikan proses
-evolusi untuk menemukan solusi optimal.
-
-FITUR UTAMA:
-- Penyelesaian sistem persamaan linear multiple variable
-- Visualisasi proses konvergensi
-- Parameter yang dapat disesuaikan
-- Verifikasi solusi
-- UI yang responsive dan user-friendly
-
-CARA PENGGUNAAN:
-1. Masukkan persamaan di textarea (format: 2x + 3y = 12)
-2. Atur parameter GA sesuai kebutuhan
-3. Klik "Solve dengan Algoritma Genetika"
-4. Lihat solusi dan proses evolusi
-
-TEKNOLOGI:
-- HTML5, CSS3, JavaScript ES6
-- Canvas API untuk visualisasi
-- Pure JavaScript tanpa library external
-*/
+    solutionDisplay.innerHTML = html
