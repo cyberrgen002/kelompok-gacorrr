@@ -986,12 +986,12 @@
 
         // Data barang default
         let items = [
-            { name: "Laptop", weight: 3, value: 800 },
-            { name: "Kamera", weight: 2, value: 500 },
-            { name: "Buku", weight: 1, value: 50 },
-            { name: "Botol Air", weight: 1, value: 10 },
-            { name: "Jaket", weight: 2, value: 100 },
-            { name: "Powerbank", weight: 1, value: 80 }
+            { name: "Laptop", weight: 3 },
+            { name: "Kamera", weight: 2 },
+            { name: "Buku", weight: 1 },
+            { name: "Botol Air", weight: 1 },
+            { name: "Jaket", weight: 2 },
+            { name: "Powerbank", weight: 1 }
         ];
 
         // Initialize items list
@@ -1006,9 +1006,7 @@
                     <input type="text" value="${item.name}" placeholder="Nama barang" 
                            onchange="updateItem(${index}, 'name', this.value)">
                     <input type="number" value="${item.weight}" placeholder="Berat" 
-                           onchange="updateItem(${index}, 'weight', parseFloat(this.value))">
-                    <input type="number" value="${item.value}" placeholder="Nilai" 
-                           onchange="updateItem(${index}, 'value', parseFloat(this.value))">
+                           onchange="updateItem(${index}, 'weight')">
                     <span>Ratio: ${(item.value / item.weight).toFixed(2)}</span>
                     <button class="remove-item" onclick="removeItem(${index})">×</button>
                 `;
