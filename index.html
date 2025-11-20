@@ -1007,7 +1007,6 @@
                            onchange="updateItem(${index}, 'name', this.value)">
                     <input type="number" value="${item.weight}" placeholder="Berat" 
                            onchange="updateItem(${index}, 'weight')">
-                    <span>Ratio: ${(item.value / item.weight).toFixed(2)}</span>
                     <button class="remove-item" onclick="removeItem(${index})">×</button>
                 `;
                 itemsList.appendChild(itemRow);
